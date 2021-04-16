@@ -1,0 +1,10 @@
+[package]
+authors = ["Matt Wilson <matthew@synesis.com.au>"]
+edition = "2018"
+homepage = "https://github.com/synesissoftware/FastParse.Rust"
+name = "fastparse"
+version = "0.0.1"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
