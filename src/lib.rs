@@ -18,7 +18,7 @@ pub mod fastparse {
         #[derive(Copy)]
         #[derive(Debug)]
         #[derive(Eq)]
-        pub struct SliceIndex {
+        pub struct PositionalSlice {
 
             /// The slice offset in the source sequence
             pub offset  :   usize,
@@ -26,7 +26,7 @@ pub mod fastparse {
             pub length  :   usize,
         }
 
-        impl PartialEq for SliceIndex {
+        impl PartialEq for PositionalSlice {
 
             fn eq(&self, other: &Self) -> bool {
 
@@ -44,7 +44,7 @@ pub mod fastparse {
             }
         }
 
-        impl PartialOrd for SliceIndex {
+        impl PartialOrd for PositionalSlice {
 
             fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
 
@@ -72,7 +72,7 @@ pub mod fastparse {
             }
         }
 
-        impl SliceIndex {
+        impl PositionalSlice {
 
             /// Creates an empty instance
             pub fn empty() -> Self {
@@ -110,6 +110,9 @@ pub mod fastparse {
             /// Parameters:
             /// * `d` - The delta
             ///
+            /// Return:
+            /// New instance of `PositionalSlice` adjusted appropriately
+            ///
             /// Preconditions:
             /// * `isize <= self.offset` - will panic (in debug) if false
             pub fn move_unchecked(&self, d : isize) -> Self {
@@ -137,7 +140,7 @@ pub mod fastparse {
             /// * `d` - The delta
             ///
             /// Return:
-            /// `Option<SliceIndex>`, where, if `Some`, it contains appropriately adjusted slice
+            /// `Option<PositionalSlice>`, where, if `Some`, it contains appropriately adjusted slice
             pub fn move_checked(&self, d : isize) -> Option<Self> {
 
                 // Possibilities for failure:
@@ -189,13 +192,13 @@ pub mod fastparse {
 
 #[test]
 #[allow(non_snake_case)]
-fn SliceIndex_empty() {
+fn PositionalSlice_empty() {
 
-    use fastparse::types::SliceIndex;
+    use fastparse::types::PositionalSlice;
 
     // check empty() produces an empty slice
     {
-        let ssi = SliceIndex::empty();
+        let ssi = PositionalSlice::empty();
 
         assert_eq!(0, ssi.offset);
         assert_eq!(0, ssi.length);
@@ -206,13 +209,13 @@ fn SliceIndex_empty() {
 
 #[test]
 #[allow(non_snake_case)]
-fn SliceIndex_new() {
+fn PositionalSlice_new() {
 
-    use fastparse::types::SliceIndex;
+    use fastparse::types::PositionalSlice;
 
     // check new(0, 0) produces an empty slice
     {
-        let ssi = SliceIndex::new(0, 0);
+        let ssi = PositionalSlice::new(0, 0);
 
         assert_eq!(0, ssi.offset);
         assert_eq!(0, ssi.length);
@@ -222,7 +225,7 @@ fn SliceIndex_new() {
 
     // check new(1, 0) produces an empty slice
     {
-        let ssi = SliceIndex::new(1, 0);
+        let ssi = PositionalSlice::new(1, 0);
 
         assert_eq!(1, ssi.offset);
         assert_eq!(0, ssi.length);
@@ -232,7 +235,7 @@ fn SliceIndex_new() {
 
     // check new(0, 1) produces a non-empty slice
     {
-        let ssi = SliceIndex::new(0, 1);
+        let ssi = PositionalSlice::new(0, 1);
 
         assert_eq!(0, ssi.offset);
         assert_eq!(1, ssi.length);
@@ -243,91 +246,91 @@ fn SliceIndex_new() {
 
 #[test]
 #[allow(non_snake_case)]
-fn SliceIndex_op_eq() {
+fn PositionalSlice_op_eq() {
 
-    use fastparse::types::SliceIndex;
+    use fastparse::types::PositionalSlice;
 
-    assert_eq!(SliceIndex::new(0, 0), SliceIndex::new(0, 0));
+    assert_eq!(PositionalSlice::new(0, 0), PositionalSlice::new(0, 0));
 
-    assert_ne!(SliceIndex::new(0, 0), SliceIndex::new(1, 0));
-    assert_ne!(SliceIndex::new(0, 0), SliceIndex::new(0, 1));
-    assert_ne!(SliceIndex::new(0, 0), SliceIndex::new(1, 1));
+    assert_ne!(PositionalSlice::new(0, 0), PositionalSlice::new(1, 0));
+    assert_ne!(PositionalSlice::new(0, 0), PositionalSlice::new(0, 1));
+    assert_ne!(PositionalSlice::new(0, 0), PositionalSlice::new(1, 1));
 }
 
 #[test]
 #[allow(non_snake_case)]
-fn SliceIndex_op_lt() {
+fn PositionalSlice_op_lt() {
 
-    use fastparse::types::SliceIndex;
+    use fastparse::types::PositionalSlice;
 
-    assert!(!(SliceIndex::new(0, 0) < SliceIndex::new(0, 0)));
-    assert!(!(SliceIndex::new(0, 0) > SliceIndex::new(0, 0)));
+    assert!(!(PositionalSlice::new(0, 0) < PositionalSlice::new(0, 0)));
+    assert!(!(PositionalSlice::new(0, 0) > PositionalSlice::new(0, 0)));
 
-    assert!(SliceIndex::new(0, 1) < SliceIndex::new(1, 1));
-    assert!(SliceIndex::new(1, 1) > SliceIndex::new(0, 1));
+    assert!(PositionalSlice::new(0, 1) < PositionalSlice::new(1, 1));
+    assert!(PositionalSlice::new(1, 1) > PositionalSlice::new(0, 1));
 
-    assert!(SliceIndex::new(0, 1) < SliceIndex::new(0, 2));
-    assert!(SliceIndex::new(0, 2) > SliceIndex::new(0, 1));
+    assert!(PositionalSlice::new(0, 1) < PositionalSlice::new(0, 2));
+    assert!(PositionalSlice::new(0, 2) > PositionalSlice::new(0, 1));
 }
 
 #[test]
 #[allow(non_snake_case)]
-fn SliceIndex_move_unchecked() {
+fn PositionalSlice_move_unchecked() {
 
-    use fastparse::types::SliceIndex;
+    use fastparse::types::PositionalSlice;
 
     {
-        let ssi1 = SliceIndex::new(0, 1);
+        let ssi1 = PositionalSlice::new(0, 1);
 
         let ssi2 = ssi1.move_unchecked(1);
 
-        assert_eq!(SliceIndex::new(1, 1), ssi2);
+        assert_eq!(PositionalSlice::new(1, 1), ssi2);
     }
 
     {
-        let ssi1 = SliceIndex::new(1, 1);
+        let ssi1 = PositionalSlice::new(1, 1);
 
         let ssi2 = ssi1.move_unchecked(-1);
 
-        assert_eq!(SliceIndex::new(0, 1), ssi2);
+        assert_eq!(PositionalSlice::new(0, 1), ssi2);
     }
 
     #[cfg(not(debug_assertions))]
     {
-        let ssi1 = SliceIndex::new(0, 1);
+        let ssi1 = PositionalSlice::new(0, 1);
 
         let ssi2 = ssi1.move_unchecked(-1);
 
-        assert_eq!(SliceIndex::new(std::usize::MAX, 1), ssi2);
+        assert_eq!(PositionalSlice::new(std::usize::MAX, 1), ssi2);
     }
 }
 
 #[test]
 #[allow(non_snake_case)]
-fn SliceIndex_move_checked() {
+fn PositionalSlice_move_checked() {
 
-    use fastparse::types::SliceIndex;
+    use fastparse::types::PositionalSlice;
 
     {
-        let ssi1 = SliceIndex::new(0, 1);
+        let ssi1 = PositionalSlice::new(0, 1);
 
         let ssi2 = ssi1.move_checked(1);
 
         assert!(ssi2.is_some());
-        assert_eq!(SliceIndex::new(1, 1), ssi2.unwrap());
+        assert_eq!(PositionalSlice::new(1, 1), ssi2.unwrap());
     }
 
     {
-        let ssi1 = SliceIndex::new(1, 1);
+        let ssi1 = PositionalSlice::new(1, 1);
 
         let ssi2 = ssi1.move_checked(-1);
 
         assert!(ssi2.is_some());
-        assert_eq!(SliceIndex::new(0, 1), ssi2.unwrap());
+        assert_eq!(PositionalSlice::new(0, 1), ssi2.unwrap());
     }
 
     {
-        let ssi1 = SliceIndex::new(0, 1);
+        let ssi1 = PositionalSlice::new(0, 1);
 
         let ssi2 = ssi1.move_checked(-1);
 
@@ -335,16 +338,16 @@ fn SliceIndex_move_checked() {
     }
 
     {
-        let ssi1 = SliceIndex::new(usize::MAX - 2, 1);
+        let ssi1 = PositionalSlice::new(usize::MAX - 2, 1);
 
         let ssi2 = ssi1.move_checked(1);
 
         assert!(ssi2.is_some());
-        assert_eq!(SliceIndex::new(usize::MAX - 1, 1), ssi2.unwrap());
+        assert_eq!(PositionalSlice::new(usize::MAX - 1, 1), ssi2.unwrap());
     }
 
     {
-        let ssi1 = SliceIndex::new(usize::MAX - 2, 1);
+        let ssi1 = PositionalSlice::new(usize::MAX - 2, 1);
 
         let ssi2 = ssi1.move_checked(2);
 
@@ -354,11 +357,11 @@ fn SliceIndex_move_checked() {
 
 #[test]
 #[allow(non_snake_case)]
-fn SliceIndex_clone() {
+fn PositionalSlice_clone() {
 
-    use fastparse::types::SliceIndex;
+    use fastparse::types::PositionalSlice;
 
-    let ssi1 = SliceIndex::new(10, 13);
+    let ssi1 = PositionalSlice::new(10, 13);
     let ssi2 = ssi1.clone();
 
     assert_eq!(ssi1, ssi2);
@@ -366,11 +369,11 @@ fn SliceIndex_clone() {
 
 #[test]
 #[allow(non_snake_case)]
-fn SliceIndex_copy() {
+fn PositionalSlice_copy() {
 
-    use fastparse::types::SliceIndex;
+    use fastparse::types::PositionalSlice;
 
-    let ssi1 = SliceIndex::new(10, 13);
+    let ssi1 = PositionalSlice::new(10, 13);
     let ssi2 = ssi1;
 
     assert_eq!(ssi1, ssi2);
