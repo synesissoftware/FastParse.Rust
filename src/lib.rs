@@ -186,6 +186,18 @@ pub mod fastparse {
                     return Some(Self::new(self.offset + a, self.length));
                 }
             }
+
+            /// Applies this positional slice to a slice of arbitrary type, obtaining a relative slice as a result
+            pub fn subslice_of<'a, T>(&self, slice : &'a [T]) -> &'a [T] {
+
+                &slice[self.offset..self.offset+self.length]
+            }
+
+            /// Applies this positional slice to a slice of arbitrary type, obtaining a relative slice as a result
+            pub fn substring_of<'a>(&self, slice : &'a str) -> &'a str {
+
+                &slice[self.offset..self.offset+self.length]
+            }
         }
     }
 }
@@ -377,4 +389,62 @@ fn PositionalSlice_copy() {
     let ssi2 = ssi1;
 
     assert_eq!(ssi1, ssi2);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn PositionalSlice_subslice_of() {
+
+    use fastparse::types::PositionalSlice;
+
+    {
+        let ps = PositionalSlice::new(2, 2);
+
+        let source = vec![ 0, 1, 2, 3, 4, 5, 6 ];
+
+        let sub = ps.subslice_of(&source);
+
+        assert_eq!(2, sub.len());
+        assert_eq!(2, sub[0]);
+        assert_eq!(3, sub[1]);
+    }
+
+    {
+        let ps = PositionalSlice::new(2, 2);
+
+        let source = vec![ 0, 1, 2, 3, 4, 5, 6 ];
+
+        let sub = ps.subslice_of(&source[1..]);
+
+        assert_eq!(2, sub.len());
+        assert_eq!(3, sub[0]);
+        assert_eq!(4, sub[1]);
+    }
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn PositionalSlice_substring_of() {
+
+    use fastparse::types::PositionalSlice;
+
+    {
+        let ps = PositionalSlice::new(2, 2);
+
+        let source = "abcdef".to_string();
+
+        let sub = ps.substring_of(&source[..]);
+
+        assert_eq!("cd", sub);
+    }
+
+    {
+        let ps = PositionalSlice::new(2, 2);
+
+        let source = "abcdef".to_string();
+
+        let sub = ps.substring_of(&source[1..]);
+
+        assert_eq!("de", sub);
+    }
 }
