@@ -129,6 +129,60 @@ pub mod fastparse {
                     offset  :   new_off,
                 }
             }
+
+            /// Obtains checked a copy of the slice moved by the given
+            /// `d`elta
+            ///
+            /// Parameters:
+            /// * `d` - The delta
+            ///
+            /// Return:
+            /// `Option<SliceIndex>`, where, if `Some`, it contains appropriately adjusted slice
+            pub fn move_checked(&self, d : isize) -> Option<Self> {
+
+                // Possibilities for failure:
+                //
+                // 1. d is -ve and _would_ move offset below 0;
+                // 2. d is +ve and _would_ move offset above usize::MAX; or
+                // 3. d is +ve and _would_ move offset such that offset+length > usize::MAX
+
+                if 0 == d {
+
+                    return Some(self.clone());
+                }
+
+                if d < 0 {
+
+                    let a = (-d) as usize;
+
+                    if a > self.offset {
+
+                        // case 1.
+                        return None;
+                    }
+
+                    return Some(Self::new(self.offset - a, self.length));
+                } else {
+
+                    debug_assert!(d > 0);
+
+                    let a = d as usize;
+
+                    if a > usize::MAX - self.offset {
+
+                        // case 2.
+                        return None;
+                    }
+
+                    if a + self.length > usize::MAX - self.offset {
+
+                        // case 2.
+                        return None;
+                    }
+
+                    return Some(Self::new(self.offset + a, self.length));
+                }
+            }
         }
     }
 }
@@ -245,6 +299,56 @@ fn SliceIndex_move_unchecked() {
         let ssi2 = ssi1.move_unchecked(-1);
 
         assert_eq!(SliceIndex::new(std::usize::MAX, 1), ssi2);
+    }
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn SliceIndex_move_checked() {
+
+    use fastparse::types::SliceIndex;
+
+    {
+        let ssi1 = SliceIndex::new(0, 1);
+
+        let ssi2 = ssi1.move_checked(1);
+
+        assert!(ssi2.is_some());
+        assert_eq!(SliceIndex::new(1, 1), ssi2.unwrap());
+    }
+
+    {
+        let ssi1 = SliceIndex::new(1, 1);
+
+        let ssi2 = ssi1.move_checked(-1);
+
+        assert!(ssi2.is_some());
+        assert_eq!(SliceIndex::new(0, 1), ssi2.unwrap());
+    }
+
+    {
+        let ssi1 = SliceIndex::new(0, 1);
+
+        let ssi2 = ssi1.move_checked(-1);
+
+        assert!(ssi2.is_none());
+    }
+
+    {
+        let ssi1 = SliceIndex::new(usize::MAX - 2, 1);
+
+        let ssi2 = ssi1.move_checked(1);
+
+        assert!(ssi2.is_some());
+        assert_eq!(SliceIndex::new(usize::MAX - 1, 1), ssi2.unwrap());
+    }
+
+    {
+        let ssi1 = SliceIndex::new(usize::MAX - 2, 1);
+
+        let ssi2 = ssi1.move_checked(2);
+
+        assert!(ssi2.is_none());
     }
 }
 
