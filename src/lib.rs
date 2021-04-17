@@ -179,7 +179,7 @@ pub mod fastparse {
 
                     if a + self.length > usize::MAX - self.offset {
 
-                        // case 2.
+                        // case 3.
                         return None;
                     }
 
