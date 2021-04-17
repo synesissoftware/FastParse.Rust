@@ -14,6 +14,8 @@ pub mod fastparse {
         };
 
         /// A slice representation of offset and length
+        #[derive(Clone)]
+        #[derive(Copy)]
         #[derive(Debug)]
         #[derive(Eq)]
         pub struct SliceIndex {
@@ -246,3 +248,26 @@ fn SliceIndex_move_unchecked() {
     }
 }
 
+#[test]
+#[allow(non_snake_case)]
+fn SliceIndex_clone() {
+
+    use fastparse::types::SliceIndex;
+
+    let ssi1 = SliceIndex::new(10, 13);
+    let ssi2 = ssi1.clone();
+
+    assert_eq!(ssi1, ssi2);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn SliceIndex_copy() {
+
+    use fastparse::types::SliceIndex;
+
+    let ssi1 = SliceIndex::new(10, 13);
+    let ssi2 = ssi1;
+
+    assert_eq!(ssi1, ssi2);
+}
