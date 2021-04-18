@@ -98,6 +98,12 @@ pub mod fastparse {
                 }
             }
 
+            /// Indicates the length of the slice
+            pub fn len(&self) -> usize {
+
+                self.length
+            }
+
             /// Indicates whether the slice is empty
             pub fn is_empty(&self) -> bool {
 
