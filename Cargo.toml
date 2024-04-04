@@ -5,13 +5,13 @@
 [package]
 
 authors = [
-	"Matt Wilson <matthew@synesis.com.au>",
+  "Matt Wilson <matthew@synesis.com.au>",
 ]
 edition = "2021"
 homepage = "https://github.com/synesissoftware/FastParse.Rust"
 name = "fastparse"
 readme = "README.md"
-version = "0.0.2"
+version = "0.0.3"
 
 
 # ##########################################################

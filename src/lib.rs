@@ -21,48 +21,7 @@ pub mod fastparse {
             pub length : usize,
         }
 
-        impl std_cmp::PartialEq for PositionalSlice {
-            fn eq(
-                &self,
-                other : &Self,
-            ) -> bool {
-                if self.offset != other.offset {
-                    return false;
-                }
-
-                if self.length != other.length {
-                    return false;
-                }
-
-                true
-            }
-        }
-
-        impl std_cmp::PartialOrd for PositionalSlice {
-            fn partial_cmp(
-                &self,
-                other : &Self,
-            ) -> Option<Ordering> {
-                if self.offset < other.offset {
-                    return Some(Ordering::Less);
-                }
-
-                if other.offset < self.offset {
-                    return Some(Ordering::Greater);
-                }
-
-                if self.length < other.length {
-                    return Some(Ordering::Less);
-                }
-
-                if other.length < self.length {
-                    return Some(Ordering::Greater);
-                }
-
-                Some(Ordering::Equal)
-            }
-        }
-
+        // API functions
         impl PositionalSlice {
             /// Creates an empty instance.
             pub fn empty() -> Self {
@@ -89,15 +48,22 @@ pub mod fastparse {
                     length : len,
                 }
             }
+        }
+
+        // Mutating methods
+        impl PositionalSlice {
+        }
+
+        // Non-mutating methods
+        impl PositionalSlice {
+            /// Indicates whether the slice is empty.
+            pub fn is_empty(&self) -> bool {
+                0 == self.length
+            }
 
             /// Indicates the length of the slice.
             pub fn len(&self) -> usize {
                 self.length
-            }
-
-            /// Indicates whether the slice is empty.
-            pub fn is_empty(&self) -> bool {
-                0 == self.length
             }
 
             /// Obtains unchecked a copy of the slice moved by the given
@@ -111,11 +77,11 @@ pub mod fastparse {
             ///
             /// # Preconditions:
             /// * `isize <= self.offset` - will panic (in debug) if false
-            pub fn move_unchecked(
+            pub fn offset_unchecked(
                 &self,
                 d : isize,
             ) -> Self {
-                // TODO: determine the rigth Rust way of doing addition with
+                // TODO: determine the right Rust way of doing addition with
                 let new_off : usize = if d < 0 {
                     self.offset - (-d) as usize
                 } else {
@@ -137,7 +103,7 @@ pub mod fastparse {
             /// # Return:
             /// `Option<PositionalSlice>`, where, if `Some`, it contains
             /// appropriately adjusted slice.
-            pub fn move_checked(
+            pub fn offset_checked(
                 &self,
                 d : isize,
             ) -> Option<Self> {
@@ -211,6 +177,50 @@ pub mod fastparse {
                 &slice[self.offset..self.offset + self.length]
             }
         }
+
+        // Trait implementations
+
+        impl std_cmp::PartialEq for PositionalSlice {
+            fn eq(
+                &self,
+                other : &Self,
+            ) -> bool {
+                if self.offset != other.offset {
+                    return false;
+                }
+
+                if self.length != other.length {
+                    return false;
+                }
+
+                true
+            }
+        }
+
+        impl std_cmp::PartialOrd for PositionalSlice {
+            fn partial_cmp(
+                &self,
+                other : &Self,
+            ) -> Option<Ordering> {
+                if self.offset < other.offset {
+                    return Some(Ordering::Less);
+                }
+
+                if other.offset < self.offset {
+                    return Some(Ordering::Greater);
+                }
+
+                if self.length < other.length {
+                    return Some(Ordering::Less);
+                }
+
+                if other.length < self.length {
+                    return Some(Ordering::Greater);
+                }
+
+                Some(Ordering::Equal)
+            }
+        }
     }
 }
 
@@ -268,6 +278,22 @@ mod tests {
     }
 
     #[test]
+    fn PositionalSlice_clone() {
+        let ssi1 = PositionalSlice::new(10, 13);
+        let ssi2 = ssi1.clone();
+
+        assert_eq!(ssi1, ssi2);
+    }
+
+    #[test]
+    fn PositionalSlice_copy() {
+        let ssi1 = PositionalSlice::new(10, 13);
+        let ssi2 = ssi1;
+
+        assert_eq!(ssi1, ssi2);
+    }
+
+    #[test]
     fn PositionalSlice_op_eq() {
         assert_eq!(PositionalSlice::new(0, 0), PositionalSlice::new(0, 0));
 
@@ -289,11 +315,11 @@ mod tests {
     }
 
     #[test]
-    fn PositionalSlice_move_unchecked() {
+    fn PositionalSlice_offset_unchecked() {
         {
             let ssi1 = PositionalSlice::new(0, 1);
 
-            let ssi2 = ssi1.move_unchecked(1);
+            let ssi2 = ssi1.offset_unchecked(1);
 
             assert_eq!(PositionalSlice::new(1, 1), ssi2);
         }
@@ -301,7 +327,7 @@ mod tests {
         {
             let ssi1 = PositionalSlice::new(1, 1);
 
-            let ssi2 = ssi1.move_unchecked(-1);
+            let ssi2 = ssi1.offset_unchecked(-1);
 
             assert_eq!(PositionalSlice::new(0, 1), ssi2);
         }
@@ -310,18 +336,31 @@ mod tests {
         {
             let ssi1 = PositionalSlice::new(0, 1);
 
-            let ssi2 = ssi1.move_unchecked(-1);
+            let ssi2 = ssi1.offset_unchecked(-1);
 
             assert_eq!(PositionalSlice::new(std::usize::MAX, 1), ssi2);
         }
     }
 
+    #[cfg(debug_assertions)]
     #[test]
-    fn PositionalSlice_move_checked() {
+    #[should_panic(expected = "attempt to subtract with overflow")]
+    fn PositionalSlice_offset_unchecked_() {
         {
             let ssi1 = PositionalSlice::new(0, 1);
 
-            let ssi2 = ssi1.move_checked(1);
+            let _ssi2 = ssi1.offset_unchecked(-1);
+
+            panic!("should not get here");
+        }
+    }
+
+    #[test]
+    fn PositionalSlice_offset_checked() {
+        {
+            let ssi1 = PositionalSlice::new(0, 1);
+
+            let ssi2 = ssi1.offset_checked(1);
 
             assert!(ssi2.is_some());
             assert_eq!(PositionalSlice::new(1, 1), ssi2.unwrap());
@@ -330,7 +369,7 @@ mod tests {
         {
             let ssi1 = PositionalSlice::new(1, 1);
 
-            let ssi2 = ssi1.move_checked(-1);
+            let ssi2 = ssi1.offset_checked(-1);
 
             assert!(ssi2.is_some());
             assert_eq!(PositionalSlice::new(0, 1), ssi2.unwrap());
@@ -339,7 +378,7 @@ mod tests {
         {
             let ssi1 = PositionalSlice::new(0, 1);
 
-            let ssi2 = ssi1.move_checked(-1);
+            let ssi2 = ssi1.offset_checked(-1);
 
             assert!(ssi2.is_none());
         }
@@ -347,7 +386,7 @@ mod tests {
         {
             let ssi1 = PositionalSlice::new(usize::MAX - 2, 1);
 
-            let ssi2 = ssi1.move_checked(1);
+            let ssi2 = ssi1.offset_checked(1);
 
             assert!(ssi2.is_some());
             assert_eq!(PositionalSlice::new(usize::MAX - 1, 1), ssi2.unwrap());
@@ -356,26 +395,10 @@ mod tests {
         {
             let ssi1 = PositionalSlice::new(usize::MAX - 2, 1);
 
-            let ssi2 = ssi1.move_checked(2);
+            let ssi2 = ssi1.offset_checked(2);
 
             assert!(ssi2.is_none());
         }
-    }
-
-    #[test]
-    fn PositionalSlice_clone() {
-        let ssi1 = PositionalSlice::new(10, 13);
-        let ssi2 = ssi1.clone();
-
-        assert_eq!(ssi1, ssi2);
-    }
-
-    #[test]
-    fn PositionalSlice_copy() {
-        let ssi1 = PositionalSlice::new(10, 13);
-        let ssi2 = ssi1;
-
-        assert_eq!(ssi1, ssi2);
     }
 
     #[test]
