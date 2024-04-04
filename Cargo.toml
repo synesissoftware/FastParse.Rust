@@ -1,10 +1,37 @@
+
+# ##########################################################
+# Package
+
 [package]
-authors = ["Matt Wilson <matthew@synesis.com.au>"]
-edition = "2018"
+
+authors = [
+	"Matt Wilson <matthew@synesis.com.au>",
+]
+edition = "2021"
 homepage = "https://github.com/synesissoftware/FastParse.Rust"
 name = "fastparse"
-version = "0.0.1"
+readme = "README.md"
+version = "0.0.2"
+
+
+# ##########################################################
+# Targets
+
+
+# ##########################################################
+# Features
+
+[features]
+
+
+# ##########################################################
+# Dependencies
+
+[dependencies]
+
+
+[dev-dependencies]
+
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[dependencies]
